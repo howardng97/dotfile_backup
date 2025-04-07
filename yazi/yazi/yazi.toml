@@ -1,0 +1,11 @@
+[open]
+editor = "nvim"
+prepend_rules = [
+{name = "*.AppImage", use = ["app_image"]},
+]
+[manager]
+show_hidden = true
+[opener]
+app_image = [
+{ run = '"$0"', orphan = true, desc = "Run AppImage", for = "unix" }
+]
