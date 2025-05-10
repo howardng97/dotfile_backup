@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 
 # Stop on error
@@ -5,57 +6,124 @@ set -e
 
 # --- Configuration ---
 
-# Packages from official repositories
+# Packages from official repositories (ADD iptables-nft here)
 PACMAN_PACKAGES=(
     blueman
+    bluez-utils # Often needed with blueman
     btop
-    fish
+    # catppuccin-gtk-theme-mocha # This is AUR
+    ccache
+    cmake
+    curl
+    dfu-util
+    docker
+    docker-buildx
+    docker-compose
+    dtc
+    efibootmgr
+    exfatprogs
     fcitx5
-    fcitx5-configtool # GUI configuration tool for fcitx5
-    fcitx5-gtk        # GTK input module
-    fcitx5-qt         # Qt input module
-    fcitx5-bamboo     # Vietnamese input method engine for fcitx5
+    fcitx5-configtool
+    fcitx5-gtk
+    fcitx5-qt
+    fcitx5-bamboo
+    # fcitx5-mozc # Keep if you need Japanese input
+    fd
+    firefox
+    fish
+    fuse-overlayfs
+    fuse2 # For AppImages/older software
     fzf
     git
+    # Add GNOME packages ONLY if you intend to install GNOME Desktop
+    # gdm gnome-shell gnome-control-center nautilus etc...
+    # If only using Hyprland, remove GNOME packages to avoid conflicts/bloat
+    gparted
+    gperf # Build tool, often needed
     hyprland
     hyprlock
     hyprpaper
+    intel-ucode # Or amd-ucode
+    jq
+    # kicad # Large install, keep if needed
     kitty
-    lazydocker
+    # lazydocker # This is AUR: lazydocker
     lazygit
+    linux
+    linux-firmware
+    linux-headers
+    # loupe # GNOME image viewer
+    # malcontent # GNOME parental controls
+    minicom
+    nano
     neovim
-    nwg-look          # GTK settings editor, replacement for lxappearance
-    pavucontrol       # PulseAudio volume control (works with PipeWire-Pulse)
-    pipewire-alsa     # ALSA configuration client/plugin for PipeWire
-    pipewire-jack     # JACK implementation for PipeWire
-    starship          # Cross-shell prompt
-    ttf-cascadia-code-nerd # Nerd Font version of Cascadia Code
-    tree
-    vlc
-    waybar            # Wayland bar for Sway/Hyprland
-    wl-clipboard      # Wayland clipboard utilities
-    wlsunset          # Day/night gamma adjustments for Wayland
-    wofi              # Launcher/menu for Wayland
-    yazi              # Terminal file manager
-    zip               # Zip utility
-    zoxide            # Smarter cd command
+    # nerdfetch # This is AUR
+    networkmanager # Essential for networking
+    ninja
+    ntfs-3g
+    # nvidia nvidia-settings # Keep ONLY if you have NVIDIA hardware
+    # nvm # Installed via script
+    nwg-look
+    # orca # Screen reader
+    pavucontrol
+    pipewire-alsa
+    pipewire-jack
+    # pod2man # Provided by perl package
+    python-pip
+    python-pipx
     ripgrep
+    # rygel # GNOME media server
+    # simple-scan # Scanner utility
+    # snapshot # GNOME camera app
+    starship
+    stow
+    # sushi # Nautilus previewer
+    # tecla # GNOME accessibility
+    terraform
+    # tio # This is AUR
+    # totem # GNOME video player
+    tree
+    ttf-cascadia-code-nerd
+    usbutils
+    vlc
+    waybar
+    wget
+    wl-clipboard
+    wlsunset
+    wofi
+    # xdg-desktop-portal-gnome # Keep if using GNOME apps heavily on Hyprland, or install xdg-desktop-portal-hyprland
+    xdg-user-dirs-gtk # Creates standard user directories (Downloads, etc.)
+    yazi
+    # yelp # GNOME help browser
+    zip
+    zoxide
+    zram-generator
     # Add base-devel and git if not already assumed to be present
     base-devel
     git
-    curl              # Needed for nvm install script
-    wget              # Alternative for nvm install script / other downloads
+    # 7zip # Official package name is p7zip
+    p7zip
+    # ARM/AVR tools if needed
+    arm-none-eabi-gcc
+    arm-none-eabi-newlib
+    avr-gcc
+    avr-libc
+    # JDK if needed
+    jdk17-openjdk # Or other versions like jdk-openjdk
 )
 
 # Packages from the AUR (Arch User Repository)
 AUR_PACKAGES=(
-    catppuccin-gtk-theme-mocha # Catppuccin GTK Theme
-    google-chrome              # Web browser
-    nerdfetch                  # System information fetch tool
-    termius-bin                # Termius SSH client (binary version)
+    catppuccin-gtk-theme-mocha
+    google-chrome
+    lazydocker
+    nerdfetch
+    termius-bin # Use the -bin version
+    tio
+    # android-studio # Large install, keep if needed
+    # yay-debug # Usually not needed
 )
 
-# --- Functions ---
 
 # Function to print messages
 log() {
@@ -100,6 +168,114 @@ sudo pacman -Syu --noconfirm
 # Although included in PACMAN_PACKAGES list, ensure they are installed early.
 log "Ensuring essential tools (git, base-devel, curl, wget) are installed..."
 sudo pacman -S --needed --noconfirm git base-devel curl wget
+# --- System Update ---
+log "Updating system repositories and packages..."
+# Check lock file before sync
+PACMAN_LOCK="/var/lib/pacman/db.lck"
+if [ -f "$PACMAN_LOCK" ]; then
+    log "ERROR: Pacman lock file exists: $PACMAN_LOCK. Resolve conflict and re-run."
+    exit 1
+fi
+sudo pacman -Syu --noconfirm
+
+
+# --- Install Official Packages ---
+log "Installing packages from official repositories..."
+
+# Check lock file again before installing
+if [ -f "$PACMAN_LOCK" ]; then
+    log "ERROR: Pacman lock file exists: $PACMAN_LOCK. Resolve conflict and re-run."
+    exit 1
+fi
+
+# Combine hardcoded list with pkglist.txt for OFFICIAL packages
+declare -A official_packages_seen
+declare -a FINAL_PACMAN_LIST
+
+# Add hardcoded official packages
+for pkg in "${PACMAN_PACKAGES[@]}"; do
+    if [[ -z "${official_packages_seen[$pkg]}" ]]; then
+        FINAL_PACMAN_LIST+=("$pkg")
+        official_packages_seen[$pkg]=1
+    fi
+done
+
+# Add official packages from pkglist.txt
+if [[ -f "pkglist.txt" ]]; then
+    log "Reading official packages from pkglist.txt"
+    mapfile -t file_pkgs < <(grep -vE '^\s*(#|$)' pkglist.txt | sed 's/#.*//' | xargs)
+    for pkg in "${file_pkgs[@]}"; do
+        # Only add if not already seen
+        if [[ -z "${official_packages_seen[$pkg]}" ]]; then
+            FINAL_PACMAN_LIST+=("$pkg")
+            official_packages_seen[$pkg]=1
+        fi
+    done
+fi
+
+# Install OFFICIAL Packages
+if [ ${#FINAL_PACMAN_LIST[@]} -gt 0 ]; then
+    pacman_pkg_list="${FINAL_PACMAN_LIST[*]}"
+    log "Attempting to install/update via Pacman: ${pacman_pkg_list}"
+    # Use --askconfirm instead of --noconfirm if you want to manually resolve conflicts like iptables
+    # Or rely on having added iptables-nft above
+    if sudo pacman -S --needed --noconfirm ${pacman_pkg_list}; then
+        log "Official package installation command finished successfully."
+    else
+        log "WARNING: Pacman command finished with errors. Some official packages might not have been found or installed."
+        log "Check the pacman output above."
+        # Decide whether to exit: exit 1
+    fi
+else
+    log "No official packages specified or found to install."
+fi
+
+
+# --- Install AUR Packages ---
+log "Installing packages from the AUR..."
+
+# Combine hardcoded list with aur-pkglist.txt for AUR packages
+declare -A aur_packages_seen
+declare -a FINAL_AUR_LIST
+
+# Add hardcoded AUR packages
+for pkg in "${AUR_PACKAGES[@]}"; do
+    if [[ -z "${aur_packages_seen[$pkg]}" ]]; then
+        FINAL_AUR_LIST+=("$pkg")
+        aur_packages_seen[$pkg]=1
+    fi
+done
+
+# Add AUR packages from aur-pkglist.txt
+if [[ -f "aur-pkglist.txt" ]]; then
+    log "Reading AUR packages from aur-pkglist.txt"
+    mapfile -t file_aur_pkgs < <(grep -vE '^\s*(#|$)' aur-pkglist.txt | sed 's/#.*//' | xargs)
+    for pkg in "${file_aur_pkgs[@]}"; do
+         # Only add if not already seen AND not a known non-AUR package
+         if [[ -z "${aur_packages_seen[$pkg]}" && "$pkg" != "nvm" && "$pkg" != "yay" && "$pkg" != "pod2man" ]]; then
+            FINAL_AUR_LIST+=("$pkg")
+            aur_packages_seen[$pkg]=1
+        fi
+    done
+fi
+
+# Install AUR Packages
+if [ ${#FINAL_AUR_LIST[@]} -gt 0 ]; then
+    aur_pkg_list="${FINAL_AUR_LIST[*]}"
+    log "Attempting to install/update via Yay: ${aur_pkg_list}"
+    # !!! CRITICAL: NO SUDO HERE !!!
+    if yay -S --needed --noconfirm ${aur_pkg_list}; then
+         log "AUR package installation command finished successfully."
+    else
+         log "ERROR: Yay command failed. Please check the output above for errors."
+         exit 1 # Exit if yay fails
+    fi
+else
+    log "No AUR packages specified or found to install."
+fi
+
+
+
 
 
 # --- Ensure Rust is up ---
@@ -107,55 +283,60 @@ log "Install rust and rust deps"
 sudo pacman -S rustup
 rustup default stable
 
-# --- Install yay (AUR Helper) ---
-if ! command_exists yay; then
-    log "yay not found. Installing yay..."
-    if [[ -d "/tmp/yay-git" ]]; then
-        log "Removing existing /tmp/yay-git directory..."
-        rm -rf /tmp/yay-git
-    fi
-    git clone https://aur.archlinux.org/yay-git.git /tmp/yay-git
-    (
-        cd /tmp/yay-git || exit 1
-        # Build and install, using sudo only for the final installation step
-        makepkg -si --noconfirm
-    )
-    # Clean up
-    rm -rf /tmp/yay-git
-    log "yay installation complete."
-else
-    log "yay is already installed."
-fi
 
-# --- Install Official Packages ---
-log "Installing packages from official repositories..."
-# Convert array to space-separated string
-pacman_pkg_list="${PACMAN_PACKAGES[*]}"
-sudo pacman -S --needed --noconfirm $pacman_pkg_list
-log "Official package installation complete."
 
-# --- Install AUR Packages ---
-if [ ${#AUR_PACKAGES[@]} -gt 0 ]; then
-    log "Installing packages from the AUR..."
-    # Convert array to space-separated string
-    aur_pkg_list="${AUR_PACKAGES[*]}"
-    yay -S --needed --noconfirm $aur_pkg_list
-    log "AUR package installation complete."
-else
-    log "No AUR packages specified."
-fi
 
 # --- Install nvm (Node Version Manager) ---
-log "Installing nvm (Node Version Manager)..."
-# Fetch the latest install script URL (this is generally stable but could change)
-NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh"
-curl -o- "$NVM_INSTALL_URL" | bash
-log "Set default shell to fish"
-chsh -s /usr/bin/fish
-fish
-curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
-fisher install jethrokuan/z
-fisher install jorgebucaran/nvm.fish
+# (Keep the existing NVM installation section as is - the fish plugin usually wraps the core NVM)
+if ! command_exists nvm; then
+    log "Installing nvm (Node Version Manager)..."
+    NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh"
+    curl -o- "$NVM_INSTALL_URL" | bash
+    log "nvm installation script executed."
+    log "IMPORTANT: You NEED TO RESTART your shell or source your shell's rc file"
+    log "           for the 'nvm' command to become available in Bash/Zsh."
+    log "           The fish nvm plugin will handle loading it within Fish."
+else
+     log "nvm appears to be installed or sourced already."
+fi
+
+
+# --- Configure Fish Shell ---
+log "-----------------------------------------------------"
+log "Configuring Fish Shell..."
+log "-----------------------------------------------------"
+
+if command_exists fish; then
+    log "Fish shell is installed. Proceeding with Fisher setup."
+
+    # Install Fisher and specified plugins
+    # Run these commands *as the user* within a fish subshell
+    log "Installing Fisher plugin manager and plugins (z, nvm.fish)..."
+    # Note: The user's original command includes installing fisher itself again, which is fine.
+    # Using 'and' is Fish idiomatic way to chain commands on success.
+    if fish -c 'curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher; and fisher install jethrokuan/z; and fisher install jorgebucaran/nvm.fish'; then
+        log "Fisher and plugins (z, nvm.fish) installation commands executed."
+        log "You may need to restart Fish shell for all changes to take effect."
+    else
+        log "ERROR: Failed to install Fisher or its plugins. Check output above."
+        # Decide if this error should be fatal
+        # exit 1
+    fi
+
+    # Setting default shell - Advise manual execution
+    log "-----------------------------------------------------"
+    log "IMPORTANT: To set Fish as your default shell, run the following command"
+    log "           manually after this script finishes and enter your password:"
+    log ""
+    log "  chsh -s /usr/bin/fish"
+    log ""
+    log "You will need to log out and log back in for the default shell change to take effect."
+    log "-----------------------------------------------------"
+
+else
+    log "WARNING: Fish shell command not found. Skipping Fisher setup."
+    log "         Ensure 'fish' was included in PACMAN_PACKAGES and installed correctly."
+fi
 
 
 # --- Copy Configuration Files/Folders ---
@@ -218,20 +399,24 @@ log "Finished copying configuration files/folders."
 
 # --- Finished ---
 log "-----------------------------------------------------"
-log " Installation Script Finished!"
+log " Installation and Setup Script Finished!"
 log "-----------------------------------------------------"
 log ""
-log "Post-installation Notes:"
-log " *  NVM: Remember to configure nvm in your shell's rc file (e.g., .bashrc, .zshrc) as mentioned above and then run 'nvm install node'."
-log " *  Fcitx5: To enable Fcitx5 input methods, you usually need to set environment variables. Add these to your shell profile (like ~/.profile or ~/.pam_environment) or DE's startup configuration:"
-log "      export GTK_IM_MODULE=fcitx"
-log "      export QT_IM_MODULE=fcitx"
-log "      export XMODIFIERS=@im=fcitx"
-log "    You might need to log out and back in for these changes to take effect. You may also need to start the fcitx5 daemon."
-log " *  Starship: To use Starship prompt, add 'eval \"\$(starship init bash)\"' (or zsh/fish equivalent) to your .bashrc/.zshrc/.config/fish/config.fish."
-log " *  Hyprland/Waybar/Wofi/etc.: These require configuration files. Check their respective documentation or look for dotfile examples online."
-log " *  Catppuccin Theme: Use 'nwg-look' or another GTK theme switcher to apply the Catppuccin theme."
-log " *  PipeWire: Ensure PipeWire services are running (usually handled by systemd user units). Check 'systemctl --user status pipewire pipewire-pulse wireplumber'."
+log "Post-operation Notes:"
+# (Keep existing notes and add/modify Fish-specific ones)
+log " *  Configuration Files: Copied contents from '$CURRENT_DIR/dirname/dirname/' to '$CONFIG_DEST/dirname/' for relevant directories."
+log " *  Backgrounds: Image files from '$CURRENT_DIR/backgrounds/backgrounds/' were copied to '$CONFIG_DEST/backgrounds/'. Consider moving them."
+log " *  Fish Shell & Fisher:"
+log "    - Fisher plugin manager and plugins (z, nvm.fish) were installed."
+log "    - TO MAKE FISH YOUR DEFAULT SHELL: Run 'chsh -s /usr/bin/fish' manually and enter your password."
+log "    - Log out and log back in for the default shell change to apply."
+log "    - You might need to start a new Fish shell instance for plugin functions to be fully available."
+log " *  NVM: Remember to RESTART YOUR SHELL (or source rc files for Bash/Zsh). For Fish, the nvm.fish plugin should handle loading NVM automatically in new Fish sessions."
+log "    - After restarting/sourcing, install Node.js with 'nvm install node'."
+log " *  Fcitx5: Enable by setting environment variables (export GTK_IM_MODULE=fcitx, etc.) and potentially starting the 'fcitx5' daemon. Log out/in may be required."
+log " *  Starship: Add 'starship init fish | source' to your ~/.config/fish/config.fish and restart the shell."
+log " *  PipeWire: Ensure services are running ('systemctl --user status pipewire pipewire-pulse wireplumber')."
+log " *  Review Logs: Check the script output above for any errors."
 log ""
 log "Enjoy your new setup!"
 

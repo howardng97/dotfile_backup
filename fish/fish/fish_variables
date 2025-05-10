@@ -1,7 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
-SETUVAR --export NVM_DIR:/home/howardn97/\x2envm
-SETUVAR --export --path PATH:/home/howardn97/\x2envm/bin\x1e/usr/lib/jvm/java\x2d17\x2dopenjdk/bin\x1e/home/howardn97/Android/Sdk/emulator\x1e/home/howardn97/Android/Sdk/tools/bin\x1e/home/howardn97/Android/Sdk/tools\x1e/home/howardn97/Android/Sdk/platform\x2dtools\x1e/home/howardn97/flutter/bin\x1e/home/howardn97/\x2elocal/bin\x1e/home/howardn97/\x2ebun/bin\x1e/home/howardn97/\x2ecargo/bin\x1e/home/howardn97/Android/Sdk/emulator\x1e/home/howardn97/Android/Sdk/tools/bin\x1e/home/howardn97/Android/Sdk/tools\x1e/home/howardn97/Android/Sdk/platform\x2dtools\x1e/home/howardn97/flutter/bin\x1e/home/howardn97/\x2elocal/bin\x1e/usr/local/bin\x1e/usr/bin\x1e/home/howardn97/go/bin\x1e/home/howardn97/go/bin
+SETUVAR --export NVM_DIR:/home/deepin/\x2envm
 SETUVAR __fish_initialized:3800
 SETUVAR _fisher_catppuccin_2F_fish_files:\x7e/\x2econfig/fish/themes/Catppuccin\x20Frappe\x2etheme\x1e\x7e/\x2econfig/fish/themes/Catppuccin\x20Latte\x2etheme\x1e\x7e/\x2econfig/fish/themes/Catppuccin\x20Macchiato\x2etheme\x1e\x7e/\x2econfig/fish/themes/Catppuccin\x20Mocha\x2etheme
 SETUVAR _fisher_edc_2F_bass_files:\x7e/\x2econfig/fish/functions/__bass\x2epy\x1e\x7e/\x2econfig/fish/functions/bass\x2efish

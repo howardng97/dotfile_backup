@@ -1,5 +1,4 @@
 7zip
-android-studio
 arm-none-eabi-gcc
 arm-none-eabi-newlib
 avr-gcc
@@ -84,10 +83,8 @@ hyprland
 hyprlock
 hyprpaper
 intel-ucode
-iptables-nft
 jdk17-openjdk
 jq
-kicad
 kitty
 lazydocker
 linux
@@ -129,7 +126,6 @@ totem
 tree
 ttf-cascadia-code-nerd
 usbutils
-visual-studio-code-bin
 vlc
 waybar
 wget

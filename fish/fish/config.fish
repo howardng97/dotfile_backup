@@ -19,14 +19,6 @@ set -x PATH $HOME/.local/bin $PATH
 set -x PATH $HOME/flutter/bin $PATH
 
 # android dev PATH
-set -x ANDROID_HOME $HOME/Android/Sdk
-set -x PATH $ANDROID_HOME/platform-tools $PATH 
-set -x PATH $ANDROID_HOME/tools $PATH 
-set -x PATH $ANDROID_HOME/tools/bin $PATH 
-set -x PATH $ANDROID_HOME/emulator $PATH 
-set -x NDK_HOME $ANDROID_HOME/ndk/29.0.13113456 
-set -x JAVA_HOME /opt/android-studio/jbr
-set -x PATH $JAVA_HOME/bin $PATH
 # Nạp Cargo
 set -x PATH $HOME/.cargo/bin $PATH
 # Thiết lập Bun
