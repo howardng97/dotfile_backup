@@ -1,0 +1,32 @@
+return {}
+-- return {
+--   "nvim-neo-tree/neo-tree.nvim",
+--   branch = "v3.x",
+--   dependencies = {
+--     "nvim-lua/plenary.nvim",
+--     "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+--     "MunifTanjim/nui.nvim",
+--     -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+--   },
+--   config = function()
+--     require("neo-tree").setup({
+--       filesystem = {
+--         follow_current_file = true,
+--         hijack_netrw = true,
+--       },
+--       window = {
+--         width = 30,
+--         auto_expand_width = true,
+--         mappings = {
+--           ["Y"] = function(state)
+--             local node = state.tree:get_node()
+--             local path = node.path or node:get_id()
+--             vim.fn.setreg("+", path)
+--             print("Copied path: " .. path)
+--           end,
+--         },
+--       },
+--     })
+--     vim.keymap.set("n", "<C-n>", ":Neotree toggle filesystem reveal right<CR>", { noremap = true, silent = true })
+--   end,
+-- }

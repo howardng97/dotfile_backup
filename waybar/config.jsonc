@@ -1,0 +1,74 @@
+{
+  "position": "top",
+  "modules-left": ["hyprland/workspaces"],
+  "modules-center": ["clock"],
+  "modules-right": ["cpu","memory","pulseaudio", "custom/input","network","battery"],
+  "clock": {
+    "format": "{0:%H:%M} {0:%d-%m-%Y}",
+    "tooltip": true,
+    "tooltip-format": "🕒 {0:%H:%M:%S}\n📅 {0:%A, %d %B %Y}",
+    "interval": 60
+  },
+  "battery": {
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "<span size='13000' foreground='#a6e3a1'>{icon} </span> {capacity}%",
+    "format-warning": "<span size='13000' foreground='#B1E3AD'>{icon} </span> {capacity}%",
+    "format-critical": "<span size='13000' foreground='#E38C8F'>{icon} </span> {capacity}%",
+    "format-charging": "<span size='13000' foreground='#B1E3AD'> </span>{capacity}%",
+    "format-plugged": "<span size='13000' foreground='#B1E3AD'> </span>{capacity}%",
+    "format-alt": "<span size='13000' foreground='#B1E3AD'>{icon} </span> {time}",
+    "format-full": "<span size='13000' foreground='#B1E3AD'> </span>{capacity}%",
+    "format-icons": ["", "", "", "", ""],
+    "tooltip-format": "{time}"
+  },
+  "cpu": {
+    "format": "<span size='17000'></span> {usage}%",
+    "tooltip": true
+  },
+  "memory": {
+    "format": "<span size='17000'></span> {used:0.1f}G",
+    "tooltip": true
+  },
+  "network": {
+    "format-wifi": "<span size='17000'>󱚽</span> {essid}",
+    "format-ethernet": "<span size='17000'>󰌗</span> Wired",
+    "format-disconnected": "<span size='17000'>󰌙</span> Disconnected",
+    "tooltip-format-wifi": "Signal Strenght: {signalStrength}%",
+    "on-click": "networkmanager_dmenu"
+  },
+  "hyprland/workspaces":{
+    "format": "<span size='17000'>{icon}</span>",
+    "on-click": "activate",
+    "persistent-workspaces": {
+      // "DP-1": [1, 2, 3, 4, 5],
+      "HDMI-A-1": [1, 2, 3, 4, 5]
+    },
+    "format-icons": {
+      "1": "",     
+      "2": "",      
+      "3": "",       
+      "4": "󰒋",
+      "default": "",
+      "urgent": ""
+    }
+  },
+  "pulseaudio": {
+      "format": "<span size='17000'>{icon}</span> {volume}%",
+      "format-muted": "",
+      "format-icons": {
+        "default": ["", "", ""]
+      },
+      "tooltip-format": "Device: {desc}\nVolume: {volume}%",
+      "on-click": "pavucontrol"
+  },
+  "custom/input": {
+    "exec": "sh ~/.config/waybar/scripts/input-source.sh", 
+    "interval": 1,  
+    "tooltip": false,
+    "format": "<span size='17000'>{}</span>",
+    "on-click": "fcitx5-configtool"  
+  }
+}
